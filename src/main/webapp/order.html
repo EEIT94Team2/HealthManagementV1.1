@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>享健你，遇見更好的自己．</title>
+  <!-- 引入 jQuery、DataTables 與 SweetAlert2 -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+  <!-- 引入主要樣式 -->
+  <link rel="stylesheet" type="text/css" href="styles/gymstyle.css">
+  <link rel="stylesheet" href="styles/shopstyle.css">
+</head>
+<body>
+<!-- Header -->
+<div id="header">
+  <h1>享健你，遇見更好的自己．</h1>
+  <h2>你，今天健了嗎？</h2>
+</div>
+<!-- Navigation -->
+<div id="navigation">
+  <ul>
+    <li><a href="http://localhost:8080/HealthManagement/jsp/course/HealthManagement.jsp">首頁</a></li>
+    <li><a href="http://localhost:8080/HealthManagement/jsp/membercenter.jsp">會員管理</a></li>
+    <li><a href="http://localhost:8080/HealthManagement/product.html" class="active">商城購物</a></li>
+    <li><a href="http://localhost:8080/HealthManagement/jsp/fitness/index.jsp">健身成效</a></li>
+    <li><a href="http://localhost:8080/HealthManagement/jsp/course/index.jsp">課程管理</a></li>
+    <li><a href="http://localhost:8080/HealthManagement/api/Social/post">社群論壇</a></li>
+  </ul>
+</div>
+<!-- Top Section：頁面切換按鈕 -->
+<section id="topSection">
+  <button onclick="location.href='product.html'">產品管理</button>
+  <button onclick="location.href='cart.html'">購物車管理</button>
+  <button onclick="location.href='order.html'">訂單管理</button>
+</section>
+<!-- Second Section：頁面標題 -->
+<section id="SecondSection">
+  <h1>訂單管理</h1>
+</section>
+<!-- Third Section：新增訂單按鈕 -->
+<section id="ThirdSection">
+  <button id="addOrderBtn" class="outpulser">新增訂單</button>
+</section>
+<!-- Content：DataTable 區塊 -->
+<div id="content">
+  <table id="orderTable" class="display">
+    <thead>
+    <tr>
+      <th>訂單ID</th>
+      <th>會員ID</th>
+      <th>總金額</th>
+      <th>狀態</th>
+      <th>建立時間</th>
+      <th>操作</th>
+    </tr>
+    </thead>
+  </table>
+</div>
+<!-- Footer -->
+<div id="footer">
+  <p>&copy; 2025 享健你. 讓運動成為習慣，遇見更好的自己。</p>
+</div>
+<!-- Script -->
+<script>
+  // 動態取得 Context Path
+  var contextPath = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+  if (contextPath === "/") { contextPath = ""; }
+
+  // 取得格式化後的當前時間：yyyy-MM-dd HH:mm:ss
+  function getCurrentTimeFormatted() {
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = ("0" + (now.getMonth() + 1)).slice(-2);
+    var day = ("0" + now.getDate()).slice(-2);
+    var hours = ("0" + now.getHours()).slice(-2);
+    var minutes = ("0" + now.getMinutes()).slice(-2);
+    var seconds = ("0" + now.getSeconds()).slice(-2);
+    return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+  }
+
+  $(document).ready(function () {
+    // 初始化訂單 DataTable
+    var table = $("#orderTable").DataTable({
+      ajax: {
+        url: contextPath + "/api/shop/order/find",
+        dataSrc: "orders"
+      },
+      columns: [
+        { data: "orderId" },
+        { data: "userId" },
+        { data: "totalAmount" },
+        { data: "statusId" },
+        { data: "createdAt", render: function(data){ return data ? data.replace("T", " ") : ""; } },
+        {
+          data: null,
+          render: function(data, type, row) {
+            return '<button class="action-btn update-btn" data-id="' + row.orderId + '">修改</button>' +
+                    '<button class="action-btn delete-btn" data-id="' + row.orderId + '">刪除</button>';
+          }
+        }
+      ]
+    });
+
+    // 新增訂單 AJAX 呼叫
+    $("#addOrderBtn").click(function () {
+      Swal.fire({
+        title: "新增訂單",
+        html:
+                '<input id="swal-input1" class="swal2-input" placeholder="會員ID">' +
+                '<input id="swal-input2" class="swal2-input" placeholder="總金額">' +
+                '<input id="swal-input3" class="swal2-input" placeholder="狀態">',
+        focusConfirm: false,
+        preConfirm: () => {
+          return {
+            userId: document.getElementById("swal-input1").value,
+            totalAmount: document.getElementById("swal-input2").value,
+            statusId: document.getElementById("swal-input3").value,
+            createdAt: getCurrentTimeFormatted()
+          };
+        }
+      }).then((result) => {
+        if(result.value){
+          $.ajax({
+            url: contextPath + "/api/shop/order/add",
+            type: "POST",
+            data: result.value,
+            success: function(response) {
+              Swal.fire("成功", response.message, "success");
+              table.ajax.reload();
+            },
+            error: function() {
+              Swal.fire("錯誤", "新增訂單失敗，請稍後再試", "error");
+            }
+          });
+        }
+      });
+    });
+
+    // 修改訂單 AJAX 呼叫
+    $("#orderTable").on("click", ".update-btn", function () {
+      var orderId = $(this).data("id");
+      $.ajax({
+        url: contextPath + "/api/shop/order/find",
+        type: "GET",
+        success: function(response) {
+          var order = response.orders.find(function(item) {
+            return item.orderId == orderId;
+          });
+          if(order){
+            Swal.fire({
+              title: "修改訂單",
+              html:
+                      '<input id="swal-input1" class="swal2-input" placeholder="會員ID" value="'+ order.userId +'">' +
+                      '<input id="swal-input2" class="swal2-input" placeholder="總金額" value="'+ order.totalAmount +'">' +
+                      '<input id="swal-input3" class="swal2-input" placeholder="狀態" value="'+ order.statusId +'">',
+              focusConfirm: false,
+              preConfirm: () => {
+                return {
+                  orderId: orderId,
+                  userId: document.getElementById("swal-input1").value,
+                  totalAmount: document.getElementById("swal-input2").value,
+                  statusId: document.getElementById("swal-input3").value,
+                  createdAt: order.createdAt ? order.createdAt.substring(0, 19).replace("T", " ") : ""
+                };
+              }
+            }).then((result) => {
+              if(result.value){
+                $.ajax({
+                  url: contextPath + "/api/shop/order/update",
+                  type: "POST",
+                  data: result.value,
+                  success: function(response) {
+                    Swal.fire("成功", response.message, "success");
+                    table.ajax.reload();
+                  },
+                  error: function() {
+                    Swal.fire("錯誤", "修改訂單失敗，請稍後再試", "error");
+                  }
+                });
+              }
+            });
+          }
+        }
+      });
+    });
+
+    // 刪除訂單 AJAX 呼叫
+    $("#orderTable").on("click", ".delete-btn", function () {
+      var orderId = $(this).data("id");
+      Swal.fire({
+        title: "確定刪除？",
+        text: "刪除後資料將無法復原！",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "確定刪除",
+        cancelButtonText: "取消"
+      }).then((result) => {
+        if(result.isConfirmed){
+          $.ajax({
+            url: contextPath + "/api/shop/order/remove",
+            type: "POST",
+            data: { orderId: orderId },
+            success: function(response) {
+              Swal.fire("已刪除！", response.message, "success");
+              table.ajax.reload();
+            },
+            error: function() {
+              Swal.fire("錯誤！", "刪除訂單失敗，請稍後再試", "error");
+            }
+          });
+        }
+      });
+    });
+  });
+</script>
+</body>
+</html>

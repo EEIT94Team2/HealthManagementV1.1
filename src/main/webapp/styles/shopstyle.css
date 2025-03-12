@@ -1,0 +1,172 @@
+
+/* 表格樣式 */
+table {
+    min-width: 100%;  /* 讓表格至少填滿父容器 */
+    table-layout: fixed; /* 固定欄寬，避免內容撐開 */
+    border-collapse: collapse;
+}
+
+/* 操作按鈕 */
+.action-btn {
+    margin-right: 5px;
+    padding: 5px 10px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.update-btn {
+    background-color: #ffc107;
+    color: #fff;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.update-btn:hover{
+    background-color: #ffc107;
+    color: #fff;
+    border: 2px gray solid;
+}
+
+.delete-btn:hover{
+    background-color: #dc3545;
+    color: #fff;
+    border: 2px gray solid;
+}
+
+/*上方區塊，包含標題與新增按鈕，左對齊*/
+#topSection {
+    width: 80%;
+    margin: 0 auto 20px auto;
+    text-align: left;
+}
+#topSection h1 {
+    display: inline-block;
+    margin-right: 20px;
+}
+/* DataTable 外層容器設定為80%寬 */
+#content {
+    width: 80%;
+    margin: 0 auto;
+}
+/* 表格樣式：取消固定與滾動設定 */
+#productTable {
+    width: 100%;
+    table-layout: auto;
+}
+#productTable th, #productTable td {
+    padding: 8px;
+    text-align: center;
+}
+
+/* 統一的新增按鈕 */
+/*.addBtn {*/
+/*    margin-bottom: 20px;*/
+/*    background-color: #28a745;*/
+/*    color: #fff;*/
+/*    border: none;*/
+/*    padding: 10px 20px;*/
+/*    font-size: 16px;*/
+/*    cursor: pointer;*/
+/*    border-radius: 5px;*/
+/*}*/
+
+/* ... 其他 CSS 規則 ... */
+
+/* 新增：調整導航區與新增產品按鈕位置 */
+
+#topSection button {
+    font-size: 0.9em;
+    padding: 8px 12px;
+    margin-left: 5px;
+    border: 1px solid gray;
+}
+
+#topSection button:hover {
+    background-color: #c0c0c0;
+    cursor: pointer;
+}
+
+#SecondSection {
+    font-size: 20px;
+    text-align: left;
+    margin-bottom: 20px;
+    margin-left:10%;
+}
+
+
+
+#ThirdSection {
+    text-align: right;
+    margin-bottom: 20px;
+    margin-right:10%;
+}
+
+
+/* 按鈕 */
+.outpulser {
+    color: #fff;
+    background-color: #66A182;
+    text-align: center;
+    position: relative;
+    padding: .5em 1em;
+    border-radius: 3px;
+    transition: all 0.3s;
+    cursor: pointer;
+    -webkit-backface-visibility: hidden;
+    user-select: none;
+    font-size: 1.2em;
+}
+
+.outpulser::after {
+    width: 100%;
+    left: 0;
+    height: 100%;
+    position: absolute;
+    opacity: 0;
+    border: 2px solid #27513b;
+    transform: scale(1.2);
+    border-radius: 3px;
+    top: 0;
+    transition: all 0.3s;
+    content: '';
+    z-index: 1;
+}
+
+.outpulser:hover::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.outpulser:hover {
+    transform: scale(1.1);
+    box-shadow: 0 .2em .5em rgba(0,0,0,.3);
+}
+
+.outpulser:hover::before {
+    opacity: 0;
+    transform: scale(0);
+}
+
+.outpulser::before {
+    background-color: #fff;
+    width: 100%;
+    left: 0;
+    height: 100%;
+    position: absolute;
+    opacity: .2;
+    transform: scale(1);
+    border-radius: 3px;
+    top: 0;
+    transition: all 0.3s;
+    content: '';
+    z-index: 1;
+}
+
+.outpulser:focus {
+    outline: none;
+}

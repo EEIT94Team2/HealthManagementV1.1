@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>享健你，遇見更好的自己．</title>
+    <!-- 引入 jQuery、DataTables 與 SweetAlert2 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+    <!-- 引入團隊主要樣式與輔助樣式 -->
+    <link rel="stylesheet" type="text/css" href="styles/gymstyle.css">
+    <link rel="stylesheet" href="styles/shopstyle.css">
+
+    <style>
+
+    </style>
+</head>
+<body>
+
+<!-- 導覽列以 header 呈現 -->
+<!-- ✅ 標題區 -->
+<div id="header">
+    <h1>享健你，遇見更好的自己．</h1>
+    <h2>你，今天健了嗎？</h2>
+</div>
+<!-- ✅ 導覽列 -->
+<div id="navigation">
+    <ul>
+        <li><a href="http://localhost:8080/HealthManagement/jsp/course/HealthManagement.jsp">首頁</a></li>
+        <li><a href="http://localhost:8080/HealthManagement/jsp/membercenter.jsp">會員管理</a></li>
+        <li><a href="http://localhost:8080/HealthManagement/product.html" class="active">商城購物</a></li>
+        <li><a href="http://localhost:8080/HealthManagement/jsp/fitness/index.jsp">健身成效</a></li>
+        <li><a href="http://localhost:8080/HealthManagement/jsp/course/index.jsp">課程管理</a></li>
+        <li><a href="http://localhost:8080/HealthManagement/api/Social/post">社群論壇</a></li>
+    </ul>
+</div>
+
+<section id="topSection">
+    <button onclick="location.href='product.html'">產品管理</button>
+    <button onclick="location.href='cart.html'">購物車管理</button>
+    <button onclick="location.href='order.html'">訂單管理</button>
+</section>
+
+<!-- 上方區塊，包含標題與新增產品按鈕 -->
+<section id="SecondSection">
+    <h1>產品管理</h1>
+</section>
+
+<section id="ThirdSection">
+<button id="addProductBtn" class="outpulser">新增產品</button>
+</section>
+
+<!-- DataTables 表格區塊，寬度設定80% -->
+<div id="content">
+    <table id="productTable" class="display">
+        <thead>
+        <tr>
+            <th>產品ID</th>
+            <th>名稱</th>
+            <th>描述</th>
+            <th>價格</th>
+            <th>庫存量</th>
+            <th>建立時間</th>
+            <th>修改時間</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+</div>
+
+<div id="footer">
+    <p>&copy; 2025 享健你. 讓運動成為習慣，遇見更好的自己。</p>
+</div>
+
+<script>
+    // 動態取得 Context Path
+    var contextPath = window.location.pathname.substring(0, window.location.pathname.indexOf("/", 1));
+    if (contextPath === "/") { contextPath = ""; }
+
+    // 取得格式化後的當前時間：yyyy-MM-dd HH:mm:ss
+    function getCurrentTimeFormatted() {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = ("0" + (now.getMonth() + 1)).slice(-2);
+        var day = ("0" + now.getDate()).slice(-2);
+        var hours = ("0" + now.getHours()).slice(-2);
+        var minutes = ("0" + now.getMinutes()).slice(-2);
+        var seconds = ("0" + now.getSeconds()).slice(-2);
+        return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
+    }
+
+    $(document).ready(function () {
+        // 初始化 DataTables，不使用 scrollX 與 autoWidth 設定
+        var table = $("#productTable").DataTable({
+            ajax: {
+                url: contextPath + "/api/shop/product/find",
+                dataSrc: "products"
+            },
+            columns: [
+                { data: "productId" },
+                { data: "name" },
+                { data: "description" },
+                { data: "price" },
+                { data: "stockQuantity" },
+                { data: "createdAt", render: function(data){ return data ? data.replace("T", " ") : ""; } },
+                { data: "updatedAt", render: function(data){ return data ? data.replace("T", " ") : ""; } },
+                {
+                    data: null,
+                    render: function(data, type, row) {
+                        return '<button class="action-btn update-btn" data-id="' + row.productId + '">修改</button>' +
+                            '<button class="action-btn delete-btn" data-id="' + row.productId + '">刪除</button>';
+                    }
+                }
+            ]
+        });
+
+        // 新增產品 AJAX 呼叫
+        $("#addProductBtn").click(function () {
+            Swal.fire({
+                title: "新增產品",
+                html:
+                    '<input id="swal-input1" class="swal2-input" placeholder="產品名稱">' +
+                    '<input id="swal-input2" class="swal2-input" placeholder="描述">' +
+                    '<input id="swal-input3" class="swal2-input" placeholder="價格">' +
+                    '<input id="swal-input4" class="swal2-input" placeholder="庫存量">' +
+                    '<input id="swal-input5" class="swal2-input" placeholder="分類ID">' +
+                    '<input id="swal-input6" class="swal2-input" placeholder="圖片 URL">',
+                focusConfirm: false,
+                preConfirm: () => {
+                    return {
+                        name: document.getElementById("swal-input1").value,
+                        description: document.getElementById("swal-input2").value,
+                        price: document.getElementById("swal-input3").value,
+                        stockQuantity: document.getElementById("swal-input4").value,
+                        categoryId: document.getElementById("swal-input5").value,
+                        imageUrl: document.getElementById("swal-input6").value,
+                        createdAt: getCurrentTimeFormatted(),
+                        updatedAt: getCurrentTimeFormatted()
+                    };
+                }
+            }).then((result) => {
+                if(result.value){
+                    $.ajax({
+                        url: contextPath + "/api/shop/product/add",
+                        type: "POST",
+                        data: result.value,
+                        success: function(response) {
+                            Swal.fire("成功", response.message, "success");
+                            table.ajax.reload();
+                        },
+                        error: function() {
+                            Swal.fire("錯誤", "新增產品失敗，請稍後再試", "error");
+                        }
+                    });
+                }
+            });
+        });
+
+        // 修改產品 AJAX 呼叫
+        $("#productTable").on("click", ".update-btn", function () {
+            var productId = $(this).data("id");
+            $.ajax({
+                url: contextPath + "/api/shop/product/find",
+                type: "GET",
+                success: function(response) {
+                    var product = response.products.find(function(item) {
+                        return item.productId == productId;
+                    });
+                    if(product){
+                        Swal.fire({
+                            title: "修改產品",
+                            html:
+                                '<input id="swal-input1" class="swal2-input" placeholder="產品名稱" value="'+ product.name +'">' +
+                                '<input id="swal-input2" class="swal2-input" placeholder="描述" value="'+ product.description +'">' +
+                                '<input id="swal-input3" class="swal2-input" placeholder="價格" value="'+ product.price +'">' +
+                                '<input id="swal-input4" class="swal2-input" placeholder="庫存量" value="'+ product.stockQuantity +'">' +
+                                '<input id="swal-input5" class="swal2-input" placeholder="分類ID" value="'+ product.categoryId +'">' +
+                                '<input id="swal-input6" class="swal2-input" placeholder="圖片 URL" value="'+ product.imageUrl +'">',
+                            focusConfirm: false,
+                            preConfirm: () => {
+                                return {
+                                    productId: productId,
+                                    name: document.getElementById("swal-input1").value,
+                                    description: document.getElementById("swal-input2").value,
+                                    price: document.getElementById("swal-input3").value,
+                                    stockQuantity: document.getElementById("swal-input4").value,
+                                    categoryId: document.getElementById("swal-input5").value,
+                                    imageUrl: document.getElementById("swal-input6").value,
+                                    createdAt: product.createdAt.substring(0, 19).replace("T", " "),
+                                    updatedAt: getCurrentTimeFormatted()
+                                };
+                            }
+                        }).then((result) => {
+                            if(result.value){
+                                $.ajax({
+                                    url: contextPath + "/api/shop/product/update",
+                                    type: "POST",
+                                    data: result.value,
+                                    success: function(response) {
+                                        Swal.fire("成功", response.message, "success");
+                                        table.ajax.reload();
+                                    },
+                                    error: function() {
+                                        Swal.fire("錯誤", "修改產品失敗，請稍後再試", "error");
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        // 刪除產品 AJAX 呼叫
+        $("#productTable").on("click", ".delete-btn", function () {
+            var productId = $(this).data("id");
+            Swal.fire({
+                title: "確定刪除？",
+                text: "刪除後資料將無法復原！",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "確定刪除",
+                cancelButtonText: "取消"
+            }).then((result) => {
+                if(result.isConfirmed){
+                    $.ajax({
+                        url: contextPath + "/api/shop/product/remove",
+                        type: "POST",
+                        data: { productId: productId },
+                        success: function(response) {
+                            Swal.fire("已刪除！", response.message, "success");
+                            table.ajax.reload();
+                        },
+                        error: function() {
+                            Swal.fire("錯誤！", "刪除產品失敗，請稍後再試", "error");
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>
