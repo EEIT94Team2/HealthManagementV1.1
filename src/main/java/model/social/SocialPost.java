@@ -1,14 +1,29 @@
 package model.social;
 
-import java.text.SimpleDateFormat;
+import jakarta.persistence.*;
 import java.util.Date;
 
+@Entity
+@Table(name = "social_posts")
 public class SocialPost {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "article_id")
     private int articleId;
+
+    @Column(nullable = false, length = 255)
     private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    @Column(name = "user_id", nullable = false)
     private int userId;
-    private Date publishDate;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "publish_date", nullable = false)
+    private Date publishDate = new Date();
 
     public SocialPost() {}
 
@@ -19,50 +34,6 @@ public class SocialPost {
         this.userId = userId;
         this.publishDate = publishDate;
     }
-    
-    public int getArticleId() {
-        return articleId;
-    }
 
-    public void setArticleId(int articleId) {
-        this.articleId = articleId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public Date getPublishDate() {
-        return publishDate;
-    }
-
-    public void setPublishDate(Date publishDate) {
-        this.publishDate = publishDate;
-    }
-    
-    // 新增方法來格式化 publishDate 只顯示到分鐘
-    public String getFormattedPublishDate() {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        return formatter.format(publishDate);
-    }
+    // Getters and Setters
 }
